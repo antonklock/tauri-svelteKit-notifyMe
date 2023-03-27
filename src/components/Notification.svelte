@@ -1,102 +1,92 @@
-<script lang="ts"> 
-    import { removeNotification, removeNotificationById } from '../data/notificationList';
-	import SimpleButton from './SimpleButton.svelte';
+<script lang="ts">
+	import { compute_rest_props } from 'svelte/internal';
+	import { removeNotificationById } from '../data/notificationList';
 
-    export let id: string;
-    export let title = 'Notification';
-    export let body = 'This is the notification body!';
-    export let intervalInSeconds = 120;
-    
-    const startNotificationOnInterval = (intervalInSeconds: number) => {
-        const isRunning = () => {
-            return intervalID !== undefined;
-        }
+	export let id: string;
+	export let title = 'Notification';
+	export let body = 'This is the notification body!';
+	export let intervalInSeconds = 120;
 
-        let intervalID: number | undefined;
-        
-        ///////////////////////////////
-        ///TODO: Replace setInterval with custom timer function that can display elapsed time
-        ///////////////////////////////
+	type TimerObj = {
+		startTimer: () => void;
+		stopTimer: () => void;
+		isRunning: () => boolean;
+	};
 
-        //A function that will be called every intervalInSeconds seconds and that can display elapsed time use the computer clock as a reference
-        // const timer = () => {
-        //     const startTime = new Date().getTime();
-        //     let elapsedTime = 0;
-        //     let intervalID = setInterval(() => {
-        //         elapsedTime = new Date().getTime() - startTime;
-        //         console.log(elapsedTime);
-        //     }, 1000);
-        // }
+	const notificationTimer = (timerInterval: number) => {
+		const isRunning = () => {
+			return interval !== undefined;
+		};
 
-        //use modulus to check if the elapsed time is a multiple of the intervalInSeconds
-        // const timer = () => {
-        //     const startTime = new Date().getTime();
-        //     let elapsedTime = 0;
-        //     let intervalID = setInterval(() => {
-        //         elapsedTime = new Date().getTime() - startTime;
-        //         if(elapsedTime % (intervalInSeconds * 1000) === 0) {
-        //             console.log(elapsedTime);
-        //         }
-        //     }, 1000);
-        // }
-        
+		let interval: number | undefined;
 
-        intervalID = setInterval(() => {
-            console.log(`Show notification: ${id}`);
-        }, intervalInSeconds * 1000);
+		const startTimer = () => {
+			if (!interval) {
+				let startTime = new Date().getTime();
+				let elapsedTime = 0;
+				interval = setInterval(() => {
+					elapsedTime = Math.floor((new Date().getTime() - startTime) / 1000);
+					if (elapsedTime % timerInterval === 0) {
+						console.log('Show notification: ' + id);
+					}
+				}, 1000);
+			}
+		};
 
-        const stopInterval = () => {
-            clearInterval(intervalID);
-            intervalID = undefined;
-            console.log("Stopping interval...");
-        }
+		const stopTimer = () => {
+			if (interval) {
+				clearInterval(interval);
+				interval = undefined;
+			}
+		};
 
-        return {
-            stopInterval,
-            isRunning
-        }
-    }
+		return {
+			isRunning,
+			startTimer,
+			stopTimer
+		};
+	};
 
-    let intervalObj = startNotificationOnInterval(intervalInSeconds);
+	const startTimer = () => {
+		if (timerObj.isRunning()) timerObj.stopTimer();
+		timerObj = notificationTimer(intervalInSeconds);
+		timerObj.startTimer();
+	};
 
-    const updateInterval = () => {
-        if(intervalObj.isRunning()) {
-            intervalObj.stopInterval();
-            console.log("Updating interval...");
-            intervalObj = startNotificationOnInterval(intervalInSeconds);
-        } 
-    }
+	const updateTimer = () => {
+		if (timerObj.isRunning()) {
+			timerObj.stopTimer();
+			timerObj = notificationTimer(intervalInSeconds);
+			timerObj.startTimer();
+		}
+	};
 
-    const stopInterval = () => {
-        intervalObj.stopInterval();
-    }
+	const stopTimer = () => {
+		if (timerObj) {
+			timerObj.stopTimer();
+		}
+	};
 
-    const startInterval = () => {
-        if(intervalObj.isRunning()) {
-            intervalObj.stopInterval();
-            console.log("Restarting interval...");
-        }
-        
-        console.log("Starting interval...");
-        intervalObj = startNotificationOnInterval(intervalInSeconds);
-    }
-    
+	let timerObj = notificationTimer(intervalInSeconds);
+	timerObj.startTimer();
 </script>
 
 <div>
-    <h2>{title}</h2>
-    <p>{body}</p>
-    <p>Id: {id}</p>
-    <input type="number" bind:value={intervalInSeconds} on:change={updateInterval} />
-    <button on:click={() => removeNotificationById(id)}>Remove notification</button>
-    <button on:click={() => stopInterval()}>Stop interval</button>
-    <button on:click={() => startInterval()}>Start interval</button>
+	<h2>{title}</h2>
+	<p>{body}</p>
+	<p>Id: {id}</p>
+	<input type="number" bind:value={intervalInSeconds} on:change={updateTimer} />
+	<button on:click={() => removeNotificationById(id)}>Remove notification</button>
+	<button on:click={startTimer}> Start notification timer </button>
+	<button on:click={stopTimer}>Stop notification timer</button>
+	<!-- <button on:click={() => stopInterval()}>Stop interval</button>
+    <button on:click={() => startInterval()}>Start interval</button> -->
 </div>
 
 <style>
-    div {
-        background-color: #f1f1f1;
-        padding: 10px;
-        margin: 10px;
-    }
+	div {
+		background-color: #f1f1f1;
+		padding: 10px;
+		margin: 10px;
+	}
 </style>

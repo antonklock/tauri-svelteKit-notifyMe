@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const notificationList = writable([
     { id: uuidv4(), title: "Test", body: "Test body", intervalInSeconds: 3 },
-    { id: uuidv4(), title: "Test 2", body: "Test body 2", intervalInSeconds: 35 },
-    { id: uuidv4(), title: "Test 3", body: "Test body 3", intervalInSeconds: 60 },
+    // { id: uuidv4(), title: "Test 2", body: "Test body 2", intervalInSeconds: 35 },
+    // { id: uuidv4(), title: "Test 3", body: "Test body 3", intervalInSeconds: 60 },
 ]);
 
 export const addNotification = (title: string, body: string, intervalInSeconds: number) => {
